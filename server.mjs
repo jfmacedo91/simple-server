@@ -1,57 +1,53 @@
-import fs from "node:fs/promises";
 import { createServer } from "node:http";
 import { Router } from "./router.mjs";
-import { customRequest } from "./cutom-request.mjs";
+import { customRequest } from "./custom-request.mjs";
 import { customResponse } from "./custom-response.mjs";
+import { createCourse, createLesson, getCourse, getCourses, getLesson, getLessons } from "./database.mjs";
 
 const router = new Router();
 
-router.get("/produtos", async (req, res) => {
-  try {
-    const listaArquivos = await fs.readdir("./produtos", { recursive: true });
-    const arquivosJson = listaArquivos.filter(produto => produto.endsWith(".json"));
-    const promises = arquivosJson.map(arquivo => fs.readFile(`./produtos/${arquivo}`, "utf-8"));
-    const conteudos = await Promise.all(promises);
-    const produtos = conteudos.map(JSON.parse);
-    res.status(200).json(produtos);
-  } catch {
-    res.status(500).json("Erro!");
+router.post("/course", (req, res) => {
+  const { slug, name, description } = req.body;
+  const created = createCourse({ slug, name, description });
+  if(created) {
+    res.status(201).json("Curso criado!");
+  } else {
+    res.status(400).json("Erro ao criar o curso!");
   }
 });
 
-router.get("/produto", async (req, res) => {
-  const categoria = req.query.get("categoria");
+router.post("/lesson", (req, res) => {
+  const { course_slug, slug, name } = req.body;
+  const created = createLesson({ course_slug, slug, name });
+  if(created) {
+    res.status(201).json("Aula criado!");
+  } else {
+    res.status(400).json("Erro ao criar a aula!");
+  }
+});
+
+router.get("/courses", (req, res) => {
+  const courses = getCourses();
+  res.end(JSON.stringify(courses));
+});
+
+router.get("/course", (req, res) => {
   const slug = req.query.get("slug");
-  try {
-    const conteudo = await fs.readFile(`./produtos/${categoria}/${slug}.json`, "utf-8");
-    const produto = JSON.parse(conteudo);
-    res.status(200).json(produto);
-  } catch {
-    res.status(404).json("Produto não encontrado!");
-  }
+  const course = getCourse(slug);
+  res.end(JSON.stringify(course));
 });
 
-router.post("/produtos", async (req, res) => {
-  const { categoria, nome, slug } = req.body;
+router.get("/lessons", (req, res) => {
+  const course = req.query.get("curso");
+  const lessons = getLessons(course);
+  res.end(JSON.stringify(lessons));
+});
 
-  try {
-    await fs.mkdir("./produtos");
-  } catch(err) {
-    console.error("Pasta produtos já existe!");
-  }
-
-  try {
-    await fs.mkdir(`./produtos/${categoria}`);
-  } catch(err) {
-    console.error(`A pasta ${categoria} já existe!`);
-  }
-
-  try {
-    await fs.writeFile(`./produtos/${categoria}/${slug}.json`, JSON.stringify(req.body));
-    res.status(201).json(`Produto ${nome} criado na categoria ${categoria}!`);
-  } catch(err) {
-    res.status(500).json("Erro!")
-  }
+router.get("/lesson", (req, res) => {
+  const couseSlug = req.query.get("slug_curso");
+  const lessonSlug = req.query.get("slug_aula");
+  const lesson = getLesson(couseSlug, lessonSlug);
+  res.end(JSON.stringify(lesson));
 });
 
 const server = createServer(async (request, response) => {
