@@ -30,7 +30,7 @@ db.exec(/*sql*/`
 
 export function createCourse({ slug, name, description }) {
   try {
-    db.prepare(/*sql*/`
+    return db.prepare(/*sql*/`
       INSERT OR IGNORE INTO "courses"
         ("slug", "name", "description")
       VALUES
@@ -42,14 +42,14 @@ export function createCourse({ slug, name, description }) {
   }
 };
 
-export function createLesson({ course_slug, slug, name }) {
+export function createLesson({ courseSlug, slug, name }) {
   try {
-    db.prepare(/*sql*/`
+    return db.prepare(/*sql*/`
       INSERT OR IGNORE INTO "lessons"
         ("course_id", "slug", "name")
       VALUES
-        ((SELECT "id" FROM "courses" WHERE "slug" = '${ course_slug }'), ?, ?)
-    `).run(slug, name);
+        ((SELECT "id" FROM "courses" WHERE "slug" = ?), ?, ?)
+    `).run(courseSlug, slug, name);
   } catch(error) {
     console.log(error);
     return null;
@@ -58,44 +58,44 @@ export function createLesson({ course_slug, slug, name }) {
 
 export function getCourses() {
   try {
-    const courses = db.prepare(/*sql*/`
+    return db.prepare(/*sql*/`
       SELECT * FROM "courses";
     `).all();
-    return courses;
   } catch(error) {
     console.log(error);
+    return null;
   }
 };
 
 export function getCourse(slug) {
   try {
-    const course = db.prepare(/*sql*/`
-      SELECT * FROM "courses" WHERE "slug" = '${ slug }';
-    `).get();
-    return course;
+    return db.prepare(/*sql*/`
+      SELECT * FROM "courses" WHERE "slug" = ?;
+    `).get(slug);
   } catch(error) {
     console.log(error);
+    return null;
   }
 };
 
-export function getLessons(course) {
+export function getLessons(courseSlug) {
   try {
-    const lessons = db.prepare(/*sql*/`
-      SELECT * FROM "lessons" WHERE "course_id" = (SELECT "id" FROM "courses" WHERE "slug" = '${ course }')
-    `).all();
-    return lessons;
+    return db.prepare(/*sql*/`
+      SELECT * FROM "lessons" WHERE "course_id" = (SELECT "id" FROM "courses" WHERE "slug" = ?)
+    `).all(courseSlug);
   } catch(error) {
     console.log(error);
+    return null;
   }
 };
 
-export function getLesson(course_slug, lesson_slug) {
+export function getLesson(courseSlug, lessonSlug) {
   try {
-    const lesson = db.prepare(/*sql*/`
-      SELECT * FROM "lessons" WHERE "course_id" = (SELECT "id" FROM "courses" WHERE "slug" = '${ course_slug }') AND "slug" = '${ lesson_slug }'
-    `).get();
-    return lesson;
+    return db.prepare(/*sql*/`
+      SELECT * FROM "lessons" WHERE "course_id" = (SELECT "id" FROM "courses" WHERE "slug" = ?) AND "slug" = ?
+    `).get(courseSlug, lessonSlug);
   } catch(error) {
     console.log(error);
+    return null;
   }
 };

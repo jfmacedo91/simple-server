@@ -18,26 +18,23 @@ await fetch(base + "/lesson", {
 		"Content-Type": "application/json"
 	},
 	body: JSON.stringify({
-		course_slug: "javascript",
+		courseSlug: "javascript",
 		slug: "tipo-de-variaveis",
 		name: "Tipos de variáveis"
 	})
 });
 
-const courses = await fetch(base + "/courses", {
-	method: "GET"
-});
+const courses = await fetch(base + "/courses").then(response => response.json());
+console.log("Cursos:", courses);
 
-console.log(courses.body);
+const courseResponse = await fetch(base + "/course?slug=css");
+const course = await courseResponse.json();
+console.log("Curso:", course);
 
-const course = await fetch(base + "/course?slug=css", {
-	method: "GET"
-});
+const lessonsResponse = await fetch(base + "/lessons?curso=javascript");
+const lessons = await lessonsResponse.json();
+console.log("Aulas:", lessons);
 
-console.log(course.body);
-
-const lesson = await fetch(base + "/course?slug_curso=javascript&slug_aula=variaveis", {
-	method: "GET"
-});
-
-console.log(lesson.body);
+const lessonResponse = await fetch(base + "/lesson?slug_curso=javascript&slug_aula=variaveis");
+const lesson = await lessonResponse.json();
+console.log("Aula:", lesson);
