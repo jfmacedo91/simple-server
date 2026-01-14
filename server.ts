@@ -1,8 +1,8 @@
 import { createServer } from "node:http";
-import { Router } from "./router.mjs";
-import { customRequest } from "./custom-request.mjs";
-import { customResponse } from "./custom-response.mjs";
-import { createCourse, createLesson, getCourse, getCourses, getLesson, getLessons } from "./database.mjs";
+import { Router } from "./router.ts";
+import { customRequest } from "./custom-request.ts";
+import { customResponse } from "./custom-response.ts";
+import { createCourse, createLesson, getCourse, getCourses, getLesson, getLessons } from "./database.ts";
 
 const router = new Router();
 
@@ -70,7 +70,7 @@ const server = createServer(async (request, response) => {
   const req = await customRequest(request);
   const res = await customResponse(response);
 
-  const handler = router.find(req.method, req.pathname);
+  const handler = router.find(req.method || "", req.pathname);
   if(handler) {
     handler(req, res);
   } else {
